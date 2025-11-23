@@ -1,2 +1,65 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "mongodb" url = env("DATABASE_URL") }
+// Prisma schema for Customize Product
+// MongoDB provider
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String?
+  role      String   @default("viewer")
+  projects  Project[]
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  price       Float      @default(0)
+  shareUrl    String?
+  snapshot    String?
+  model       Model3D?   @relation(fields: [modelId], references: [id])
+  modelId     String?    @db.ObjectId
+  options     Option[]
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String?    @db.ObjectId
+  createdAt   DateTime   @default(now())
+}
+
+model Model3D {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  fileUrl   String
+  textures  String[]
+  parts     String[]
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Option {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String
+  value     String
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?  @db.ObjectId
+}
+
+model Billing {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  stripeId    String   @unique
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?  @db.ObjectId
+  plan        String
+  status      String
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+}
